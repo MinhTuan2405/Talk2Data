@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from module.auth import router as auth_router
+from module.text_to_data import create_vanna_server as vanna_server
 
 app = FastAPI(title="Server TalkWithData API")
 
@@ -12,7 +13,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 app.include_router(auth_router)
+app.mount ('/', vanna_server ())
 
 
 @app.get("/")
