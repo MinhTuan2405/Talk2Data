@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Text-to-Data — Full Documentation</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #08090d;
+  --bg2:      #0e1018;
+  --surface:  #12151f;
+  --surface2: #171b28;
+  --border:   #1e2336;
+  --border2:  #252c42;
+
+  --c1: #4fffb0;   /* mint green — primary accent */
+  --c2: #7b8cff;   /* periwinkle — secondary */
+  --c3: #ff7f5c;   /* coral — warn/highlight */
+  --c4: #ffc15e;   /* amber */
+  --c5: #e0e0e0;   /* light text */
+  --c6: #8892aa;   /* muted text */
+  --c7: #404866;   /* dim text */
+
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+
+  --sidebar-w: 260px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--c5);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.75;
+  display: flex;
+}
+
+/* ══ SIDEBAR ══ */
+.sidebar {
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  width: var(--sidebar-w);
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  z-index: 100;
+  padding-bottom: 40px;
+}
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.sidebar-logo .logo-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--c1);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.sidebar-logo h1 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--c5);
+  letter-spacing: -0.3px;
+}
+.sidebar-logo .version {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--c7);
+  margin-top: 4px;
+}
+
+.nav-group { margin: 4px 0; }
+.nav-group-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--c7);
+  padding: 10px 20px 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 20px;
+  font-size: 13px;
+  color: var(--c6);
+  text-decoration: none;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.nav-item:hover { color: var(--c5); background: var(--surface); border-left-color: var(--border2); }
+.nav-item.active { color: var(--c1); background: rgba(79,255,176,0.06); border-left-color: var(--c1); }
+.nav-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; opacity: 0.5; }
+.nav-item.active .nav-dot { opacity: 1; }
+
+/* ══ MAIN CONTENT ══ */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1;
+  min-height: 100vh;
+}
+
+/* ══ TOP BAR ══ */
+.topbar {
+  position: sticky;
+  top: 0;
+  background: rgba(8,9,13,0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 50;
+}
+.breadcrumb {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--c7);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.breadcrumb span { color: var(--c6); }
+.stack-badges { display: flex; gap: 6px; }
+.sbadge {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+}
+.sb-green  { background: rgba(79,255,176,0.1);  color: var(--c1); border: 1px solid rgba(79,255,176,0.2); }
+.sb-blue   { background: rgba(123,140,255,0.1); color: var(--c2); border: 1px solid rgba(123,140,255,0.2); }
+.sb-orange { background: rgba(255,127,92,0.1);  color: var(--c3); border: 1px solid rgba(255,127,92,0.2); }
+
+/* ══ PAGE CONTENT ══ */
+.content { max-width: 860px; padding: 56px 48px 120px; }
+
+/* ══ SECTIONS ══ */
+.page-section { margin-bottom: 80px; }
+
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.section-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--c1);
+  background: rgba(79,255,176,0.08);
+  border: 1px solid rgba(79,255,176,0.2);
+  padding: 4px 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.section-header h2 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+.section-header p { font-size: 14px; color: var(--c6); margin-top: 8px; line-height: 1.6; }
+
+/* ══ SUBSECTIONS ══ */
+.subsection { margin-bottom: 44px; }
+.subsection h3 {
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  margin-bottom: 14px;
+  color: var(--c5);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.subsection h3::before {
+  content: '';
+  width: 3px;
+  height: 18px;
+  background: var(--c2);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.subsection p { color: var(--c6); margin-bottom: 12px; }
+.subsection h4 { font-size: 13px; font-weight: 600; color: var(--c4); margin: 18px 0 8px; text-transform: uppercase; letter-spacing: 1px; font-family: var(--mono); }
+
+/* ══ CODE BLOCKS ══ */
+.code-wrap { margin: 12px 0 20px; }
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0d1017;
+  border: 1px solid var(--border2);
+  border-bottom: none;
+  padding: 8px 16px;
+  border-radius: 4px 4px 0 0;
+}
+.code-filename { font-family: var(--mono); font-size: 11px; color: var(--c6); }
+.code-lang { font-family: var(--mono); font-size: 10px; color: var(--c7); letter-spacing: 1px; text-transform: uppercase; }
+pre {
+  background: #0a0d14;
+  border: 1px solid var(--border2);
+  border-radius: 0 0 4px 4px;
+  padding: 20px 24px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.85;
+}
+pre:only-child { border-radius: 4px; }
+code { font-family: var(--mono); font-size: 12.5px; }
+
+/* Syntax */
+.cm  { color: #3a4a6a; font-style: italic; }
+.kw  { color: #c792ea; }
+.st  { color: var(--c1); }
+.fn  { color: #82aaff; }
+.cl  { color: var(--c4); }
+.nu  { color: #f78c6c; }
+.op  { color: var(--c6); }
+.de  { color: var(--c3); }
+.py  { color: #89ddff; }
+
+/* Inline code */
+.ic {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  padding: 1px 6px;
+  border-radius: 3px;
+  color: var(--c1);
+}
+
+/* ══ CALLOUTS ══ */
+.callout {
+  border-radius: 0 4px 4px 0;
+  padding: 14px 18px;
+  margin: 16px 0;
+  font-size: 13px;
+  line-height: 1.65;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+.callout-body strong { display: block; margin-bottom: 4px; font-size: 13px; }
+.callout-body p { margin: 0; }
+.callout-info  { background: rgba(123,140,255,0.07); border-left: 3px solid var(--c2); color: #aab4e0; }
+.callout-warn  { background: rgba(255,193,94,0.07);  border-left: 3px solid var(--c4); color: #d4a855; }
+.callout-danger{ background: rgba(255,127,92,0.07);  border-left: 3px solid var(--c3); color: #c47060; }
+.callout-tip   { background: rgba(79,255,176,0.06);  border-left: 3px solid var(--c1); color: #5abf8a; }
+
+/* ══ STEP LIST ══ */
+.steps { display: flex; flex-direction: column; gap: 0; counter-reset: step; }
+.step {
+  display: flex;
+  gap: 20px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+  counter-increment: step;
+}
+.step:last-child { border-bottom: none; }
+.step-num-circle {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(79,255,176,0.1);
+  border: 1px solid rgba(79,255,176,0.3);
+  color: var(--c1);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.step-body h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; color: var(--c5); }
+.step-body p  { font-size: 13px; color: var(--c6); margin-bottom: 8px; }
+.step-body p:last-child { margin-bottom: 0; }
+
+/* ══ CHECKLIST ══ */
+.checklist { list-style: none; margin: 8px 0; }
+.checklist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--c6);
+  border-bottom: 1px solid var(--border);
+}
+.checklist li:last-child { border-bottom: none; }
+.checklist li::before { content: '▹'; color: var(--c1); flex-shrink: 0; font-size: 11px; margin-top: 3px; }
+
+/* ══ FILE TREE ══ */
+.file-tree {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 20px 24px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 2;
+  margin: 12px 0;
+}
+.ft-dir  { color: var(--c2); }
+.ft-file { color: var(--c6); }
+.ft-comment { color: var(--c7); font-style: italic; }
+.ft-important { color: var(--c1); font-weight: 600; }
+
+/* ══ TABLE ══ */
+.doc-table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+.doc-table th {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--c7);
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--border);
+}
+.doc-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--c6);
+  vertical-align: top;
+}
+.doc-table tr:hover td { background: var(--surface); }
+.doc-table tr:last-child td { border-bottom: none; }
+.doc-table .label { font-weight: 600; color: var(--c5); font-size: 13px; }
+.doc-table .old { color: #8b3a3a; text-decoration: line-through; font-family: var(--mono); font-size: 11px; }
+.doc-table .new { color: var(--c1); font-family: var(--mono); font-size: 11px; }
+
+/* ══ ARCH DIAGRAM ══ */
+.arch {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 28px 32px;
+  font-family: var(--mono);
+  font-size: 12px;
+  overflow-x: auto;
+  margin: 16px 0;
+}
+.arch-row { display: flex; align-items: center; margin: 4px 0; }
+.abox {
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  display: flex; flex-direction: column;
+}
+.abox small { font-size: 9px; font-weight: 400; opacity: 0.7; margin-top: 2px; }
+.a-user   { background: rgba(123,140,255,0.15); border: 1px solid rgba(123,140,255,0.4); color: var(--c2); }
+.a-webui  { background: rgba(79,255,176,0.1);   border: 1px solid rgba(79,255,176,0.35); color: var(--c1); }
+.a-bridge { background: rgba(255,193,94,0.1);   border: 1px solid rgba(255,193,94,0.35); color: var(--c4); }
+.a-agent  { background: rgba(255,127,92,0.1);   border: 1px solid rgba(255,127,92,0.35); color: var(--c3); }
+.a-llm    { background: rgba(123,140,255,0.12); border: 1px dashed rgba(123,140,255,0.35); color: #9daeff; }
+.a-tool   { background: rgba(255,255,255,0.04); border: 1px dashed var(--border2); color: var(--c6); }
+.a-mem    { background: rgba(79,255,176,0.06);  border: 1px dashed rgba(79,255,176,0.25); color: #5abf8a; }
+.a-db     { background: rgba(255,193,94,0.08);  border: 1px dashed rgba(255,193,94,0.3); color: #a88840; }
+.arr { color: var(--c7); padding: 0 10px; font-size: 13px; }
+.arch-label { font-size: 9px; color: var(--c7); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+.arch-indent { margin-left: 32px; }
+.arch-vline { color: var(--c7); padding-left: 18px; font-size: 12px; display: block; line-height: 1.2; }
+
+/* ══ PHASE TIMELINE ══ */
+.phases { position: relative; padding-left: 24px; }
+.phases::before {
+  content: '';
+  position: absolute;
+  left: 7px; top: 8px; bottom: 8px;
+  width: 1px;
+  background: var(--border2);
+}
+.phase { position: relative; margin-bottom: 32px; }
+.phase::before {
+  content: '';
+  position: absolute;
+  left: -20px; top: 8px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--bg2);
+  border: 2px solid var(--c2);
+}
+.phase.done::before { background: var(--c1); border-color: var(--c1); }
+.phase-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+  display: inline-block;
+  letter-spacing: 1px;
+}
+.pt-1 { background: rgba(79,255,176,0.1);  color: var(--c1);  border: 1px solid rgba(79,255,176,0.25); }
+.pt-2 { background: rgba(123,140,255,0.1); color: var(--c2); border: 1px solid rgba(123,140,255,0.25); }
+.pt-3 { background: rgba(255,193,94,0.1);  color: var(--c4);  border: 1px solid rgba(255,193,94,0.25); }
+.pt-4 { background: rgba(255,127,92,0.1);  color: var(--c3);  border: 1px solid rgba(255,127,92,0.25); }
+.phase h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.phase ul { list-style: none; }
+.phase li { font-size: 13px; color: var(--c6); padding: 3px 0; display: flex; gap: 8px; align-items: flex-start; }
+.phase li::before { content: '·'; color: var(--c7); flex-shrink: 0; }
+
+/* ══ ENV TABLE ══ */
+.env-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 12px 0;
+}
+.env-row {
+  display: grid;
+  grid-template-columns: 220px 1fr auto;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.env-row:last-child { border-bottom: none; }
+.env-row:hover { background: var(--surface2); }
+.env-key   { padding: 10px 16px; color: var(--c2); border-right: 1px solid var(--border); }
+.env-val   { padding: 10px 16px; color: var(--c1); }
+.env-desc  { padding: 10px 16px; color: var(--c7); font-size: 11px; border-left: 1px solid var(--border); min-width: 180px; }
+.env-header { background: var(--surface2); }
+.env-header .env-key,
+.env-header .env-val,
+.env-header .env-desc { color: var(--c7); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 8px 16px; }
+
+/* ══ SEPARATOR ══ */
+.sep { height: 1px; background: var(--border); margin: 40px 0; }
+
+/* ══ ANIMATION ══ */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.page-section { animation: fadeIn 0.4s ease both; }
+
+/* ══ FOOTER ══ */
+.doc-footer {
+  margin-top: 80px;
+  padding: 28px 0 0;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--c7);
+  display: flex;
+  justify-content: space-between;
+}
+
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .content { padding: 32px 20px 80px; }
+  .topbar { padding: 12px 20px; }
+  .env-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SIDEBAR ══ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-tag">Documentation</div>
+    <h1>Text-to-Data App</h1>
+    <div class="version">Vanna 2.0 · FastAPI · Open WebUI</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Tổng quan</div>
+    <a class="nav-item active" href="#overview"><span class="nav-dot"></span>Kiến trúc hệ thống</a>
+    <a class="nav-item" href="#concepts"><span class="nav-dot"></span>Vanna 2.0 — Khái niệm</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Môi trường</div>
+    <a class="nav-item" href="#prerequisites"><span class="nav-dot"></span>Yêu cầu hệ thống</a>
+    <a class="nav-item" href="#project-structure"><span class="nav-dot"></span>Cấu trúc project</a>
+    <a class="nav-item" href="#env-config"><span class="nav-dot"></span>Cấu hình .env</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Triển khai</div>
+    <a class="nav-item" href="#vanna-agent"><span class="nav-dot"></span>1. Khởi tạo Vanna Agent</a>
+    <a class="nav-item" href="#openai-bridge"><span class="nav-dot"></span>2. FastAPI Bridge</a>
+    <a class="nav-item" href="#seed-memory"><span class="nav-dot"></span>3. Seed Tool Memory</a>
+    <a class="nav-item" href="#open-webui"><span class="nav-dot"></span>4. Cấu hình Open WebUI</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Vận hành</div>
+    <a class="nav-item" href="#running"><span class="nav-dot"></span>Khởi chạy toàn hệ thống</a>
+    <a class="nav-item" href="#testing"><span class="nav-dot"></span>Kiểm thử</a>
+    <a class="nav-item" href="#docker"><span class="nav-dot"></span>Docker Compose</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Tham chiếu</div>
+    <a class="nav-item" href="#troubleshoot"><span class="nav-dot"></span>Xử lý lỗi thường gặp</a>
+    <a class="nav-item" href="#phases"><span class="nav-dot"></span>Lộ trình phát triển</a>
+  </div>
+</nav>
+
+<!-- ══ MAIN ══ -->
+<div class="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="breadcrumb">
+      <span>Text-to-Data</span> › <span>Full Documentation</span>
+    </div>
+    <div class="stack-badges">
+      <span class="sbadge sb-green">Vanna 2.0</span>
+      <span class="sbadge sb-blue">FastAPI</span>
+      <span class="sbadge sb-orange">Open WebUI</span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ═══════════════════════════════════════════════
+         SECTION 0 — OVERVIEW
+    ═══════════════════════════════════════════════ -->
+    <div class="page-section" id="overview">
+      <div class="section-header">
+        <span class="section-num">00</span>
+        <div>
+          <h2>Kiến Trúc Hệ Thống</h2>
+          <p>Toàn bộ ứng dụng gồm 3 tầng độc lập: <strong>Open WebUI</strong> (giao diện người dùng), <strong>FastAPI Bridge</strong> (trung gian chuyển đổi format), và <strong>Vanna 2.0 Agent</strong> (lõi xử lý ngôn ngữ tự nhiên → SQL → dữ liệu).</p>
+        </div>
+      </div>
+
+      <div class="arch">
+        <div class="arch-label">Luồng xử lý từ người dùng đến database</div>
+        <br>
+        <div class="arch-row">
+          <div class="abox a-user">👤 USER<small>trình duyệt</small></div>
+          <span class="arr">──────▶</span>
+          <div class="abox a-webui">🖥 Open WebUI<small>:3000 — chat interface</small></div>
+          <span class="arr">── POST /v1/chat/completions ──▶</span>
+          <div class="abox a-bridge">⚡ FastAPI Bridge<small>:8000 — OpenAI-compat</small></div>
+        </div>
+        <span class="arch-vline">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│</span>
+        <div class="arch-row arch-indent">
+          <div class="abox a-agent">🧠 Vanna 2.0 Agent<small>orchestrator — tool loop</small></div>
+          <span class="arr">──▶</span>
+          <div class="abox a-llm">✨ LLM Service<small>Gemini / OpenAI / Anthropic</small></div>
+        </div>
+        <span class="arch-vline">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│</span>
+        <div class="arch-row arch-indent">
+          <div class="abox a-tool">🔧 ToolRegistry<small>RunSqlTool · VisualizeDataTool<br>SearchSavedCorrectToolUsesTool</small></div>
+          <span class="arr">──▶</span>
+          <div class="abox a-db">🗄️ Database<small>PostgreSQL / MySQL / SQLite</small></div>
+        </div>
+        <span class="arch-vline">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│</span>
+        <div class="arch-row arch-indent">
+          <div class="abox a-mem">📚 Tool Memory<small>ChromaDB — persist successful queries</small></div>
+          <span class="arr" style="font-size:11px;color:var(--c7)">  ← tự học từ mỗi query thành công</span>
+        </div>
+      </div>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon">⚠️</span>
+        <div class="callout-body">
+          <strong>Tại sao cần FastAPI Bridge?</strong>
+          <p>Vanna 2.0 có <code class="ic">VannaFastAPIServer</code> built-in nhưng nó expose endpoint SSE format riêng, không phải chuẩn OpenAI. Open WebUI chỉ kết nối được với API tương thích OpenAI (<code class="ic">POST /v1/chat/completions</code>). FastAPI Bridge là lớp trung gian bắt buộc phải tự xây.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECTION — CONCEPTS
+    ═══════════════════════════════════════════════ -->
+    <div class="page-section" id="concepts">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <div>
+          <h2>Vanna 2.0 — Những Thay Đổi Cốt Lõi</h2>
+          <p>Vanna 2.0 là rewrite hoàn toàn. Nếu bạn từng dùng Vanna 0.x, tất cả API cũ đều không còn. Hiểu rõ điều này trước khi bắt đầu code.</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>So sánh API 0.x vs 2.0</h3>
+        <table class="doc-table">
+          <thead>
+            <tr><th>Khái niệm</th><th>Vanna 0.x — KHÔNG DÙNG</th><th>Vanna 2.0 — ĐÚNG</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="label">Khởi tạo</td>
+              <td class="old">class MyVanna(ChromaDB_VectorStore, GoogleGeminiChat): ...</td>
+              <td class="new">Agent(llm_service, tool_registry, user_resolver, agent_memory)</td>
+            </tr>
+            <tr>
+              <td class="label">Sinh SQL</td>
+              <td class="old">vn.generate_sql(question)</td>
+              <td class="new">Agent tự gọi RunSqlTool qua LLM tool-use loop</td>
+            </tr>
+            <tr>
+              <td class="label">Chạy SQL</td>
+              <td class="old">vn.run_sql(sql)</td>
+              <td class="new">RunSqlTool(sql_runner=PostgresRunner(...))</td>
+            </tr>
+            <tr>
+              <td class="label">Training</td>
+              <td class="old">vn.train(ddl=...) / vn.train(sql=...)</td>
+              <td class="new">Tool Memory — SaveTextMemoryTool, SaveQuestionToolArgsTool</td>
+            </tr>
+            <tr>
+              <td class="label">Kết nối DB</td>
+              <td class="old">vn.connect_to_postgres(host=..., dbname=...)</td>
+              <td class="new">RunSqlTool(sql_runner=PostgresRunner(host=..., dbname=...))</td>
+            </tr>
+            <tr>
+              <td class="label">LLM config</td>
+              <td class="old">config={"model": ..., "api_key": ...} trong mixin</td>
+              <td class="new">GoogleGeminiLlmService(model=..., api_key=...)</td>
+            </tr>
+            <tr>
+              <td class="label">Vector store</td>
+              <td class="old">ChromaDB_VectorStore mixin class</td>
+              <td class="new">ChromaDBAgentMemory(path="./data")</td>
+            </tr>
+            <tr>
+              <td class="label">Auth/RBAC</td>
+              <td class="old">Không có</td>
+              <td class="new">UserResolver + User(group_memberships) + ToolRegistry(access_groups)</td>
+            </tr>
+            <tr>
+              <td class="label">Server</td>
+              <td class="old">Flask app tự xây hoàn toàn</td>
+              <td class="new">VannaFastAPIServer(agent) + tự xây OpenAI Bridge</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="subsection">
+        <h3>Các thành phần chính của Vanna 2.0</h3>
+        <table class="doc-table">
+          <thead><tr><th>Thành phần</th><th>Mô tả</th><th>Class</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="label">Agent</td>
+              <td>Orchestrator trung tâm — nhận câu hỏi, gọi LLM, quyết định tool nào cần dùng</td>
+              <td class="new">vanna.Agent</td>
+            </tr>
+            <tr>
+              <td class="label">LLM Service</td>
+              <td>Kết nối với model ngôn ngữ (Gemini, OpenAI, Anthropic, Ollama)</td>
+              <td class="new">GoogleGeminiLlmService, OpenAILlmService...</td>
+            </tr>
+            <tr>
+              <td class="label">ToolRegistry</td>
+              <td>Danh sách công cụ Agent được phép sử dụng, kèm RBAC</td>
+              <td class="new">vanna.core.registry.ToolRegistry</td>
+            </tr>
+            <tr>
+              <td class="label">RunSqlTool</td>
+              <td>Tool chạy SQL, nhận SqlRunner cụ thể cho từng loại DB</td>
+              <td class="new">vanna.tools.RunSqlTool</td>
+            </tr>
+            <tr>
+              <td class="label">Agent Memory</td>
+              <td>Lưu trữ question-SQL pairs thành công để học theo thời gian</td>
+              <td class="new">ChromaDBAgentMemory / DemoAgentMemory</td>
+            </tr>
+            <tr>
+              <td class="label">UserResolver</td>
+              <td>Xác định user từ request context, gán quyền group</td>
+              <td class="new">vanna.core.user.UserResolver (abstract)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECTION — PREREQUISITES
+    ═══════════════════════════════════════════════ -->
+    <div class="page-section" id="prerequisites">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <div>
+          <h2>Yêu Cầu Hệ Thống</h2>
+          <p>Các công cụ và tài nguyên cần có trước khi bắt đầu.</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Software cần cài</h3>
+        <ul class="checklist">
+          <li>Python 3.11 trở lên (<code class="ic">python --version</code> để kiểm tra)</li>
+          <li>Docker + Docker Compose (để chạy Open WebUI và database)</li>
+          <li>Git</li>
+          <li>Database đang chạy (PostgreSQL / MySQL / SQLite)</li>
+        </ul>
+
+        <h4>Cài Vanna 2.0</h4>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">terminal</span><span class="code-lang">bash</span></div>
+          <pre><span class="cm"># Tạo virtual environment</span>
+python -m venv .venv
+source .venv/bin/activate  <span class="cm"># Windows: .venv\Scripts\activate</span>
+
+<span class="cm"># Cài Vanna 2.0 với các integration cần thiết</span>
+<span class="cm"># Chọn LLM: gemini | openai | anthropic | ollama</span>
+<span class="cm"># Chọn DB:  postgres | mysql | sqlite | bigquery | snowflake</span>
+pip install <span class="st">'vanna[gemini,fastapi,postgres,chromadb]'</span>
+
+<span class="cm"># Các package bổ sung cho Bridge</span>
+pip install fastapi uvicorn python-dotenv pydantic</pre>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>API Keys cần có</h3>
+        <ul class="checklist">
+          <li><strong>Gemini:</strong> Lấy tại <code class="ic">aistudio.google.com</code> → Get API key (miễn phí)</li>
+          <li><strong>OpenAI (nếu dùng):</strong> <code class="ic">platform.openai.com/api-keys</code></li>
+          <li><strong>Anthropic (nếu dùng):</strong> <code class="ic">console.anthropic.com</code></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECTION — PROJECT STRUCTURE
+    ═══════════════════════════════════════════════ -->
+    <div class="page-section" id="project-structure">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <div>
+          <h2>Tổ Chức Project</h2>
+          <p>Cấu trúc thư mục được thiết kế để tách biệt rõ 3 phần: Vanna Agent, FastAPI Bridge, và dữ liệu seed.</p>
+        </div>
+      </div>
+
+      <div class="file-tree">
+<span class="ft-dir">text-to-data/</span>
+├── <span class="ft-dir">app/</span>                          <span class="ft-comment">← FastAPI Bridge</span>
+│   ├── <span class="ft-important">main.py</span>                   <span class="ft-comment">← entry point, FastAPI app + lifespan</span>
+│   ├── <span class="ft-important">agent.py</span>                  <span class="ft-comment">← Vanna 2.0 Agent singleton</span>
+│   ├── <span class="ft-dir">routes/</span>
+│   │   ├── <span class="ft-file">chat.py</span>               <span class="ft-comment">← POST /v1/chat/completions</span>
+│   │   └── <span class="ft-file">models.py</span>             <span class="ft-comment">← GET /v1/models</span>
+│   ├── <span class="ft-dir">services/</span>
+│   │   ├── <span class="ft-file">agent_caller.py</span>       <span class="ft-comment">← gọi agent.chat(), xử lý response</span>
+│   │   └── <span class="ft-file">formatter.py</span>          <span class="ft-comment">← UiComponent → markdown text</span>
+│   ├── <span class="ft-dir">middleware/</span>
+│   │   └── <span class="ft-file">auth.py</span>               <span class="ft-comment">← validate API key từ Open WebUI</span>
+│   └── <span class="ft-dir">resolvers/</span>
+│       └── <span class="ft-file">user_resolver.py</span>      <span class="ft-comment">← UserResolver custom implementation</span>
+│
+├── <span class="ft-dir">seed/</span>                          <span class="ft-comment">← dữ liệu khởi tạo Tool Memory</span>
+│   ├── <span class="ft-important">seed_memory.py</span>            <span class="ft-comment">← script chạy 1 lần khi setup</span>
+│   ├── <span class="ft-dir">ddl/</span>
+│   │   └── <span class="ft-file">schema.sql</span>            <span class="ft-comment">← CREATE TABLE statements</span>
+│   ├── <span class="ft-dir">docs/</span>
+│   │   └── <span class="ft-file">business_rules.md</span>     <span class="ft-comment">← quy tắc nghiệp vụ, giải thích cột</span>
+│   └── <span class="ft-file">examples.json</span>             <span class="ft-comment">← [{question, sql}, ...]</span>
+│
+├── <span class="ft-dir">chromadb_data/</span>                 <span class="ft-comment">← Tool Memory persist (add to .gitignore)</span>
+├── <span class="ft-file">docker-compose.yml</span>
+├── <span class="ft-file">.env</span>
+├── <span class="ft-file">.env.example</span>
+└── <span class="ft-file">requirements.txt</span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECTION — ENV CONFIG
+    ═══════════════════════════════════════════════ -->
+    <div class="page-section" id="env-config">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <div>
+          <h2>Cấu Hình Môi Trường</h2>
+          <p>Tạo file <code class="ic">.env</code> ở root project. Đây là nguồn duy nhất cho toàn bộ configuration.</p>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header"><span class="code-filename">.env</span><span class="code-lang">env</span></div>
+        <pre><span class="cm"># ═══════════════════════════════════════════
+#  LLM PROVIDER
+# ═══════════════════════════════════════════</span>
+<span class="cm"># Chọn 1 trong: gemini | openai | anthropic | ollama</span>
+<span class="cl">LLM_PROVIDER</span>=gemini
+
+<span class="cm"># Gemini (Google AI Studio — miễn phí tier có sẵn)</span>
+<span class="cl">GEMINI_API_KEY</span>=AIzaSy...
+<span class="cl">GEMINI_MODEL</span>=gemini-2.0-flash
+
+<span class="cm"># OpenAI (nếu dùng thay Gemini)</span>
+<span class="cm"># OPENAI_API_KEY=sk-...</span>
+<span class="cm"># OPENAI_MODEL=gpt-4o-mini</span>
+
+<span class="cm"># ═══════════════════════════════════════════
+#  DATABASE
+# ═══════════════════════════════════════════</span>
+<span class="cl">DB_HOST</span>=localhost
+<span class="cl">DB_PORT</span>=5432
+<span class="cl">DB_NAME</span>=your_database
+<span class="cl">DB_USER</span>=your_user
+<span class="cl">DB_PASS</span>=your_password
+
+<span class="cm"># ═══════════════════════════════════════════
+#  TOOL MEMORY (ChromaDB)
+# ═══════════════════════════════════════════</span>
+<span class="cl">CHROMA_PATH</span>=./chromadb_data
+<span class="cm"># Tuyệt đối phải set path để persist!</span>
+<span class="cm"># Nếu dùng DemoAgentMemory (in-memory), data mất sau restart</span>
+
+<span class="cm"># ═══════════════════════════════════════════
+#  FASTAPI BRIDGE
+# ═══════════════════════════════════════════</span>
+<span class="cl">BRIDGE_HOST</span>=0.0.0.0
+<span class="cl">BRIDGE_PORT</span>=8000
+
+<span class="cm"># API keys để Open WebUI dùng khi gọi vào Bridge</span>
+<span class="cl">ADMIN_API_KEY</span>=admin-secret-key-here
+<span class="cl">USER_API_KEY</span>=user-secret-key-here
+
+<span class="cm"># CORS — origin của Open WebUI</span>
+<span class="cl">ALLOWED_ORIGINS</span>=http://localhost:3000,http://127.0.0.1:3000
+
+<span class="cm"># Giới hạn số rows trả về (bảo vệ performance)</span>
+<span class="cl">MAX_RESULT_ROWS</span>=500</pre>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECTION — VANNA AGENT
+    ═══════════════════════════════════════════════ -->
+    <div class="page-section" id="vanna-agent">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <div>
+          <h2>Bước 1 — Khởi Tạo Vanna 2.0 Agent</h2>
+          <p>Đây là phần cốt lõi. Agent được khởi tạo một lần duy nhất khi app start và dùng chung cho toàn bộ requests.</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>app/agent.py — Vanna Agent Singleton</h3>
+
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">app/agent.py</span><span class="code-lang">python</span></div>
+          <pre><span class="cm">"Vanna 2.0 Agent — khởi tạo một lần, dùng cho cả app."</span>
+<span class="kw">import</span> os
+<span class="kw">from</span> dotenv <span class="kw">import</span> load_dotenv
+
+<span class="cm"># ── Vanna 2.0 imports — ĐÚNG ──────────────────────────────</span>
+<span class="kw">from</span> vanna <span class="kw">import</span> <span class="cl">Agent</span>
+<span class="kw">from</span> vanna.core.registry <span class="kw">import</span> <span class="cl">ToolRegistry</span>
+<span class="kw">from</span> vanna.core.user <span class="kw">import</span> <span class="cl">UserResolver</span>, <span class="cl">User</span>, <span class="cl">RequestContext</span>
+<span class="kw">from</span> vanna.tools <span class="kw">import</span> <span class="cl">RunSqlTool</span>, <span class="cl">VisualizeDataTool</span>
+<span class="kw">from</span> vanna.tools.agent_memory <span class="kw">import</span> (
+    <span class="cl">SaveQuestionToolArgsTool</span>,
+    <span class="cl">SearchSavedCorrectToolUsesTool</span>,
+    <span class="cl">SaveTextMemoryTool</span>,
+)
+
+<span class="cm"># LLM integrations — chọn 1</span>
+<span class="kw">from</span> vanna.integrations.google <span class="kw">import</span> <span class="cl">GoogleGeminiLlmService</span>
+<span class="cm"># from vanna.integrations.openai import OpenAILlmService</span>
+<span class="cm"># from vanna.integrations.anthropic import AnthropicLlmService</span>
+
+<span class="cm"># Database runner — chọn DB của bạn</span>
+<span class="kw">from</span> vanna.integrations.postgres <span class="kw">import</span> <span class="cl">PostgresRunner</span>
+<span class="cm"># from vanna.integrations.mysql import MySQLRunner</span>
+<span class="cm"># from vanna.integrations.sqlite import SqliteRunner</span>
+
+<span class="cm"># Agent Memory backend</span>
+<span class="kw">from</span> vanna.integrations.chromadb <span class="kw">import</span> <span class="cl">ChromaDBAgentMemory</span>
+<span class="cm"># from vanna.integrations.local.agent_memory import DemoAgentMemory  # chỉ dev</span>
+
+load_dotenv()
+
+<span class="cm"># ─────────────────────────────────────────────────────────
+#  1. LLM SERVICE
+# ─────────────────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">build_llm_service</span>():
+    provider = os.getenv(<span class="st">"LLM_PROVIDER"</span>, <span class="st">"gemini"</span>)
+
+    <span class="kw">if</span> provider == <span class="st">"gemini"</span>:
+        <span class="kw">return</span> <span class="cl">GoogleGeminiLlmService</span>(
+            model=os.getenv(<span class="st">"GEMINI_MODEL"</span>, <span class="st">"gemini-2.0-flash"</span>),
+            api_key=os.getenv(<span class="st">"GEMINI_API_KEY"</span>),
+        )
+    <span class="kw">elif</span> provider == <span class="st">"openai"</span>:
+        <span class="kw">from</span> vanna.integrations.openai <span class="kw">import</span> <span class="cl">OpenAILlmService</span>
+        <span class="kw">return</span> <span class="cl">OpenAILlmService</span>(
+            model=os.getenv(<span class="st">"OPENAI_MODEL"</span>, <span class="st">"gpt-4o-mini"</span>),
+            api_key=os.getenv(<span class="st">"OPENAI_API_KEY"</span>),
+        )
+    <span class="kw">else</span>:
+        <span class="kw">raise</span> ValueError(f<span class="st">"LLM_PROVIDER không hỗ trợ: {provider}"</span>)
+
+
+<span class="cm"># ─────────────────────────────────────────────────────────
+#  2. DATABASE TOOL
+# ─────────────────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">build_db_tool</span>():
+    <span class="kw">return</span> <span class="cl">RunSqlTool</span>(
+        sql_runner=<span class="cl">PostgresRunner</span>(
+            host=os.getenv(<span class="st">"DB_HOST"</span>, <span class="st">"localhost"</span>),
+            port=int(os.getenv(<span class="st">"DB_PORT"</span>, <span class="nu">5432</span>)),
+            dbname=os.getenv(<span class="st">"DB_NAME"</span>),
+            user=os.getenv(<span class="st">"DB_USER"</span>),
+            password=os.getenv(<span class="st">"DB_PASS"</span>),
+        )
+    )
+
+
+<span class="cm"># ─────────────────────────────────────────────────────────
+#  3. AGENT MEMORY — ChromaDB (phải persist!)
+# ─────────────────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">build_agent_memory</span>():
+    <span class="kw">return</span> <span class="cl">ChromaDBAgentMemory</span>(
+        path=os.getenv(<span class="st">"CHROMA_PATH"</span>, <span class="st">"./chromadb_data"</span>)
+    )
+
+
+<span class="cm"># ─────────────────────────────────────────────────────────
+#  4. USER RESOLVER — validate API key, gán RBAC group
+# ─────────────────────────────────────────────────────────</span>
+<span class="kw">class</span> <span class="cl">ApiKeyUserResolver</span>(UserResolver):
+    <span class="st">"""Resolver đơn giản dựa trên Bearer token.
+    
+    - ADMIN_API_KEY  → group 'admin'  (đọc + ghi Tool Memory)
+    - USER_API_KEY   → group 'user'   (chỉ đọc / query)
+    """</span>
+    <span class="kw">async def</span> <span class="fn">resolve_user</span>(self, ctx: <span class="cl">RequestContext</span>) -> <span class="cl">User</span>:
+        auth = ctx.get_header(<span class="st">"Authorization"</span>, <span class="st">""</span>)
+        key  = auth.replace(<span class="st">"Bearer "</span>, <span class="st">""</span>).strip()
+
+        admin_key = os.getenv(<span class="st">"ADMIN_API_KEY"</span>, <span class="st">""</span>)
+        user_key  = os.getenv(<span class="st">"USER_API_KEY"</span>, <span class="st">""</span>)
+
+        <span class="kw">if</span> key == admin_key:
+            group = <span class="st">"admin"</span>
+            uid   = <span class="st">"admin"</span>
+        <span class="kw">elif</span> key == user_key:
+            group = <span class="st">"user"</span>
+            uid   = <span class="st">"openwebui-user"</span>
+        <span class="kw">else</span>:
+            <span class="kw">raise</span> PermissionError(<span class="st">"Invalid API key"</span>)
+
+        <span class="kw">return</span> <span class="cl">User</span>(id=uid, email=f<span class="st">"{uid}@app"</span>, group_memberships=[group])
+
+
+<span class="cm"># ─────────────────────────────────────────────────────────
+#  5. BUILD AGENT — kết hợp tất cả
+# ─────────────────────────────────────────────────────────</span>
+<span class="kw">def</span> <span class="fn">create_agent</span>() -> <span class="cl">Agent</span>:
+    llm    = <span class="fn">build_llm_service</span>()
+    db     = <span class="fn">build_db_tool</span>()
+    memory = <span class="fn">build_agent_memory</span>()
+
+    <span class="cm"># ToolRegistry — đăng ký tools kèm quyền RBAC</span>
+    tools = <span class="cl">ToolRegistry</span>()
+    tools.register_local_tool(db,                                  access_groups=[<span class="st">"admin"</span>, <span class="st">"user"</span>])
+    tools.register_local_tool(<span class="cl">SaveQuestionToolArgsTool</span>(),         access_groups=[<span class="st">"admin"</span>])
+    tools.register_local_tool(<span class="cl">SearchSavedCorrectToolUsesTool</span>(),   access_groups=[<span class="st">"admin"</span>, <span class="st">"user"</span>])
+    tools.register_local_tool(<span class="cl">SaveTextMemoryTool</span>(),              access_groups=[<span class="st">"admin"</span>, <span class="st">"user"</span>])
+    tools.register_local_tool(<span class="cl">VisualizeDataTool</span>(),               access_groups=[<span class="st">"admin"</span>, <span class="st">"user"</span>])
+
+    <span class="kw">return</span> <span class="cl">Agent</span>(
+        llm_service=llm,
+        tool_registry=tools,
+        user_resolver=<span class="cl">ApiKeyUserResolver</span>(),
+        agent_memory=memory,
+    )
+
+
+<span class="cm"># Singleton — được tạo 1 lần khi module load</span>
+<span class="cm"># app/main.py sẽ gọi create_agent() trong lifespan event</span>
+agent: <span class="cl">Agent</span> | <span class="kw">None</span> = <span class="kw">None</span></pre>
+        </div>
+      </div>
+
+      <div class="callout callout-tip">
+        <span class="callout-icon">💡</span>
+        <div class="callout-body">
+          <strong>Tại sao dùng singleton?</strong>
+          <p>ChromaDBAgentMemory mở connection đến ChromaDB khi khởi tạo. Nếu tạo lại mỗi request sẽ cực chậm và mất cache. Agent được khởi tạo một lần trong <code class="ic">lifespan</code> event của FastAPI và dùng chung cho tất cả requests.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECTION — FASTAPI BRIDGE
+    ═══════════════════════════════════════════════ -->
+    <div class="page-section" id="openai-bridge">
+      <div class="section-header">
+        <span class="section-num">06</span>
+        <div>
+          <h2>Bước 2 — FastAPI Bridge</h2>
+          <p>Bridge nhận request theo chuẩn OpenAI từ Open WebUI, chuyển cho Vanna Agent xử lý, rồi trả kết quả về đúng format OpenAI SSE.</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>app/main.py — Entry Point</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">app/main.py</span><span class="code-lang">python</span></div>
+          <pre><span class="kw">import</span> os
+<span class="kw">from</span> contextlib <span class="kw">import</span> asynccontextmanager
+<span class="kw">from</span> fastapi <span class="kw">import</span> FastAPI
+<span class="kw">from</span> fastapi.middleware.cors <span class="kw">import</span> CORSMiddleware
+<span class="kw">from</span> dotenv <span class="kw">import</span> load_dotenv
+<span class="kw">import</span> app.agent <span class="kw">as</span> agent_module
+<span class="kw">from</span> app.routes <span class="kw">import</span> chat, models
+
+load_dotenv()
+
+<span class="de">@asynccontextmanager</span>
+<span class="kw">async def</span> <span class="fn">lifespan</span>(application: FastAPI):
+    <span class="cm"># STARTUP — khởi tạo Agent một lần duy nhất</span>
+    print(<span class="st">"🚀 Khởi tạo Vanna 2.0 Agent..."</span>)
+    agent_module.agent = agent_module.<span class="fn">create_agent</span>()
+    print(<span class="st">"✅ Agent sẵn sàng"</span>)
+    <span class="kw">yield</span>
+    <span class="cm"># SHUTDOWN</span>
+    print(<span class="st">"🛑 Shutting down..."</span>)
+
+
+app = FastAPI(
+    title=<span class="st">"Text-to-Data Bridge"</span>,
+    description=<span class="st">"OpenAI-compatible API wrapping Vanna 2.0 Agent"</span>,
+    version=<span class="st">"1.0.0"</span>,
+    lifespan=lifespan,
+)
+
+<span class="cm"># CORS — cho phép Open WebUI gọi vào</span>
+origins = os.getenv(<span class="st">"ALLOWED_ORIGINS"</span>, <span class="st">"http://localhost:3000"</span>).<span class="fn">split</span>(<span class="st">","</span>)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=<span class="kw">True</span>,
+    allow_methods=[<span class="st">"*"</span>],
+    allow_headers=[<span class="st">"*"</span>],
+)
+
+<span class="cm"># Đăng ký routes</span>
+app.include_router(models.router)
+app.include_router(chat.router)
+
+<span class="de">@app.get</span>(<span class="st">"/health"</span>)
+<span class="kw">async def</span> <span class="fn">health</span>():
+    <span class="kw">return</span> {<span class="st">"status"</span>: <span class="st">"ok"</span>, <span class="st">"agent_ready"</span>: agent_module.agent <span class="kw">is not None</span>}</pre>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>app/routes/models.py — Model Discovery</h3>
+        <div class="callout callout-info">
+          <span class="callout-icon">ℹ️</span>
+          <div class="callout-body">
+            <p>Open WebUI gọi <code class="ic">GET /v1/models</code> để tìm các model có sẵn. Phải trả đúng schema OpenAI, nếu không Open WebUI sẽ không nhận ra model.</p>
+          </div>
+        </div>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">app/routes/models.py</span><span class="code-lang">python</span></div>
+          <pre><span class="kw">import</span> time
+<span class="kw">from</span> fastapi <span class="kw">import</span> APIRouter
+
+router = APIRouter()
+
+<span class="de">@router.get</span>(<span class="st">"/v1/models"</span>)
+<span class="kw">async def</span> <span class="fn">list_models</span>():
+    <span class="st">"""Open WebUI gọi endpoint này để discover models."""</span>
+    <span class="kw">return</span> {
+        <span class="st">"object"</span>: <span class="st">"list"</span>,
+        <span class="st">"data"</span>: [
+            {
+                <span class="st">"id"</span>: <span class="st">"text-to-data"</span>,
+                <span class="st">"object"</span>: <span class="st">"model"</span>,
+                <span class="st">"created"</span>: int(time.time()),
+                <span class="st">"owned_by"</span>: <span class="st">"vanna-2.0"</span>,
+                <span class="st">"permission"</span>: [],
+                <span class="st">"root"</span>: <span class="st">"text-to-data"</span>,
+                <span class="st">"parent"</span>: <span class="kw">None</span>,
+            }
+        ],
+    }</pre>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>app/routes/chat.py — Endpoint Chính</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">app/routes/chat.py</span><span class="code-lang">python</span></div>
+          <pre><span class="kw">import</span> json, time, uuid, asyncio
+<span class="kw">from</span> fastapi <span class="kw">import</span> APIRouter, Request, HTTPException
+<span class="kw">from</span> fastapi.responses <span class="kw">import</span> StreamingResponse
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+<span class="kw">from</span> typing <span class="kw">import</span> Optional
+<span class="kw">import</span> app.agent <span class="kw">as</span> agent_module
+<span class="kw">from</span> app.services.agent_caller <span class="kw">import</span> <span class="fn">call_agent</span>
+
+router = APIRouter()
+
+
+<span class="cm"># ── Pydantic models (OpenAI request format) ───────────────</span>
+<span class="kw">class</span> <span class="cl">Message</span>(BaseModel):
+    role: str
+    content: str
+
+<span class="kw">class</span> <span class="cl">ChatRequest</span>(BaseModel):
+    model: str = <span class="st">"text-to-data"</span>
+    messages: list[<span class="cl">Message</span>]
+    stream: bool = <span class="kw">True</span>
+    temperature: Optional[float] = <span class="kw">None</span>
+    max_tokens: Optional[int] = <span class="kw">None</span>
+
+
+<span class="cm"># ── Main endpoint ─────────────────────────────────────────</span>
+<span class="de">@router.post</span>(<span class="st">"/v1/chat/completions"</span>)
+<span class="kw">async def</span> <span class="fn">chat_completions</span>(body: <span class="cl">ChatRequest</span>, req: <span class="cl">Request</span>):
+    <span class="kw">if</span> agent_module.agent <span class="kw">is None</span>:
+        <span class="kw">raise</span> HTTPException(<span class="nu">503</span>, detail=<span class="st">"Agent chưa sẵn sàng"</span>)
+
+    <span class="cm"># Lấy câu hỏi cuối cùng của user</span>
+    user_messages = [m <span class="kw">for</span> m <span class="kw">in</span> body.messages <span class="kw">if</span> m.role == <span class="st">"user"</span>]
+    <span class="kw">if not</span> user_messages:
+        <span class="kw">raise</span> HTTPException(<span class="nu">400</span>, detail=<span class="st">"Không có câu hỏi từ user"</span>)
+    question = user_messages[-<span class="nu">1</span>].content
+
+    <span class="cm"># Lấy API key từ header để UserResolver phân quyền</span>
+    api_key = req.headers.get(<span class="st">"Authorization"</span>, <span class="st">""</span>)
+
+    <span class="kw">if</span> body.stream:
+        <span class="kw">return</span> StreamingResponse(
+            <span class="fn">stream_response</span>(question, api_key),
+            media_type=<span class="st">"text/event-stream"</span>,
+            headers={<span class="st">"Cache-Control"</span>: <span class="st">"no-cache"</span>, <span class="st">"X-Accel-Buffering"</span>: <span class="st">"no"</span>},
+        )
+    <span class="kw">else</span>:
+        result = <span class="kw">await</span> <span class="fn">call_agent</span>(question, api_key)
+        <span class="kw">return</span> <span class="fn">build_non_stream_response</span>(result)
+
+
+<span class="cm"># ── Stream generator ──────────────────────────────────────</span>
+<span class="kw">async def</span> <span class="fn">stream_response</span>(question: str, api_key: str):
+    chunk_id = f<span class="st">"chatcmpl-{uuid.uuid4().hex[:12]}"</span>
+    created  = int(time.time())
+
+    <span class="kw">try</span>:
+        result = <span class="kw">await</span> <span class="fn">call_agent</span>(question, api_key)
+        words  = result.<span class="fn">split</span>()
+
+        <span class="kw">for</span> i, word <span class="kw">in</span> <span class="fn">enumerate</span>(words):
+            chunk = {
+                <span class="st">"id"</span>: chunk_id,
+                <span class="st">"object"</span>: <span class="st">"chat.completion.chunk"</span>,
+                <span class="st">"created"</span>: created,
+                <span class="st">"model"</span>: <span class="st">"text-to-data"</span>,
+                <span class="st">"choices"</span>: [{
+                    <span class="st">"index"</span>: <span class="nu">0</span>,
+                    <span class="st">"delta"</span>: {
+                        <span class="st">"role"</span>: <span class="st">"assistant"</span> <span class="kw">if</span> i == <span class="nu">0</span> <span class="kw">else</span> None,
+                        <span class="st">"content"</span>: word + (<span class="st">" "</span> <span class="kw">if</span> i &lt; len(words) - <span class="nu">1</span> <span class="kw">else</span> <span class="st">""</span>),
+                    },
+                    <span class="st">"finish_reason"</span>: <span class="kw">None</span>,
+                }],
+            }
+            <span class="kw">yield</span> f<span class="st">"data: {json.dumps(chunk)}\n\n"</span>
+            <span class="kw">await</span> asyncio.<span class="fn">sleep</span>(<span class="nu">0.008</span>)
+
+        <span class="cm"># Chunk cuối — finish_reason: stop</span>
+        stop_chunk = {
+            <span class="st">"id"</span>: chunk_id, <span class="st">"object"</span>: <span class="st">"chat.completion.chunk"</span>,
+            <span class="st">"created"</span>: created, <span class="st">"model"</span>: <span class="st">"text-to-data"</span>,
+            <span class="st">"choices"</span>: [{<span class="st">"index"</span>: <span class="nu">0</span>, <span class="st">"delta"</span>: {}, <span class="st">"finish_reason"</span>: <span class="st">"stop"</span>}],
+        }
+        <span class="kw">yield</span> f<span class="st">"data: {json.dumps(stop_chunk)}\n\n"</span>
+        <span class="kw">yield</span> <span class="st">"data: [DONE]\n\n"</span>
+
+    <span class="kw">except</span> PermissionError:
+        err = {<span class="st">"error"</span>: {<span class="st">"message"</span>: <span class="st">"API key không hợp lệ"</span>, <span class="st">"type"</span>: <span class="st">"auth_error"</span>}}
+        <span class="kw">yield</span> f<span class="st">"data: {json.dumps(err)}\n\n"</span>
+    <span class="kw">except</span> Exception <span class="kw">as</span> e:
+        err = {<span class="st">"error"</span>: {<span class="st">"message"</span>: str(e), <span class="st">"type"</span>: <span class="st">"agent_error"</span>}}
+        <span class="kw">yield</span> f<span class="st">"data: {json.dumps(err)}\n\n"</span>
+        <span class="kw">yield</span> <span class="st">"data: [DONE]\n\n"</span>
+
+
+<span class="kw">def</span> <span class="fn">build_non_stream_response</span>(result: str) -> dict:
+    <span class="kw">return</span> {
+        <span class="st">"id"</span>: f<span class="st">"chatcmpl-{uuid.uuid4().hex[:12]}"</span>,
+        <span class="st">"object"</span>: <span class="st">"chat.completion"</span>,
+        <span class="st">"created"</span>: int(time.time()),
+        <span class="st">"model"</span>: <span class="st">"text-to-data"</span>,
+        <span class="st">"choices"</span>: [{
+            <span class="st">"index"</span>: <span class="nu">0</span>,
+            <span class="st">"message"</span>: {<span class="st">"role"</span>: <span class="st">"assistant"</span>, <span class="st">"content"</span>: result},
+            <span class="st">"finish_reason"</span>: <span class="st">"stop"</span>,
+        }],
+        <span class="st">"usage"</span>: {<span class="st">"prompt_tokens"</span>: <span class="nu">0</span>, <span class="st">"completion_tokens"</span>: <span class="nu">0</span>, <span class="st">"total_tokens"</span>: <span class="nu">0</span>},
+    }</pre>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>app/services/agent_caller.py — Gọi Vanna Agent</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">app/services/agent_caller.py</span><span class="code-lang">python</span></div>
+          <pre><span class="kw">import</span> os
+<span class="kw">from</span> vanna.core.user <span class="kw">import</span> <span class="cl">User</span>
+<span class="kw">import</span> app.agent <span class="kw">as</span> agent_module
+<span class="kw">from</span> app.services.formatter <span class="kw">import</span> <span class="fn">vanna_response_to_markdown</span>
+
+
+<span class="kw">async def</span> <span class="fn">call_agent</span>(question: str, authorization: str) -> str:
+    <span class="st">"""
+    Gọi Vanna Agent với câu hỏi từ user.
+    authorization: giá trị của header 'Authorization' từ Open WebUI.
+    Trả về chuỗi markdown để stream về client.
+    """</span>
+    key   = authorization.replace(<span class="st">"Bearer "</span>, <span class="st">""</span>).strip()
+    group = <span class="st">"admin"</span> <span class="kw">if</span> key == os.getenv(<span class="st">"ADMIN_API_KEY"</span>) <span class="kw">else</span> <span class="st">"user"</span>
+    user  = <span class="cl">User</span>(id=key[:8] <span class="kw">or</span> <span class="st">"anon"</span>, email=<span class="st">"user@app"</span>, group_memberships=[group])
+
+    <span class="cm"># Agent tự điều phối: LLM → tools → memory → response</span>
+    response = <span class="kw">await</span> agent_module.agent.<span class="fn">chat</span>(message=question, user=user)
+
+    <span class="kw">return</span> <span class="fn">vanna_response_to_markdown</span>(response)</pre>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>app/services/formatter.py — Parse Response Vanna 2.0</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">app/services/formatter.py</span><span class="code-lang">python</span></div>
+          <pre><span class="st">"""
+Vanna 2.0 trả về list UiComponent objects, không phải plain text.
+Hàm này convert chúng thành markdown để gửi về Open WebUI.
+"""</span>
+<span class="kw">from</span> typing <span class="kw">import</span> Any
+
+
+<span class="kw">def</span> <span class="fn">vanna_response_to_markdown</span>(response: Any) -> str:
+    <span class="st">"""
+    response có thể là:
+    - List[UiComponent] — chuẩn Vanna 2.0
+    - str               — fallback text
+    """</span>
+    <span class="kw">if isinstance</span>(response, str):
+        <span class="kw">return</span> response
+
+    <span class="kw">if not isinstance</span>(response, list):
+        <span class="kw">return</span> str(response)
+
+    parts = []
+    <span class="kw">for</span> component <span class="kw">in</span> response:
+        comp_type = <span class="fn">getattr</span>(component, <span class="st">"type"</span>, <span class="st">""</span>)
+        comp_type_name = type(component).__name__
+
+        <span class="cm"># SQL code block</span>
+        <span class="kw">if</span> comp_type == <span class="st">"sql"</span> <span class="kw">or</span> <span class="st">"Sql"</span> <span class="kw">in</span> comp_type_name:
+            sql_text = <span class="fn">getattr</span>(component, <span class="st">"sql"</span>, <span class="st">""</span>) <span class="kw">or</span> <span class="fn">getattr</span>(component, <span class="st">"content"</span>, <span class="st">""</span>)
+            parts.<span class="fn">append</span>(f<span class="st">"```sql\n{sql_text}\n```"</span>)
+
+        <span class="cm"># DataFrame/Table → Markdown table</span>
+        <span class="kw">elif</span> comp_type == <span class="st">"table"</span> <span class="kw">or</span> <span class="st">"DataFrame"</span> <span class="kw">in</span> comp_type_name:
+            df = <span class="fn">getattr</span>(component, <span class="st">"data"</span>, <span class="kw">None</span>) <span class="kw">or</span> <span class="fn">getattr</span>(component, <span class="st">"dataframe"</span>, <span class="kw">None</span>)
+            <span class="kw">if</span> df <span class="kw">is not None</span>:
+                parts.<span class="fn">append</span>(<span class="fn">dataframe_to_markdown</span>(df))
+
+        <span class="cm"># Text / SimpleText</span>
+        <span class="kw">elif</span> comp_type <span class="kw">in</span> (<span class="st">"text"</span>, <span class="st">"message"</span>) <span class="kw">or</span> <span class="st">"Text"</span> <span class="kw">in</span> comp_type_name:
+            text = <span class="fn">getattr</span>(component, <span class="st">"text"</span>, <span class="st">""</span>) <span class="kw">or</span> <span class="fn">getattr</span>(component, <span class="st">"content"</span>, <span class="st">""</span>)
+            <span class="kw">if</span> text:
+                parts.<span class="fn">append</span>(text)
+
+        <span class="cm"># Error component</span>
+        <span class="kw">elif</span> comp_type == <span class="st">"error"</span> <span class="kw">or</span> <span class="st">"Error"</span> <span class="kw">in</span> comp_type_name:
+            msg = <span class="fn">getattr</span>(component, <span class="st">"message"</span>, str(component))
+            parts.<span class="fn">append</span>(f<span class="st">"⚠️ **Lỗi:** {msg}"</span>)
+
+        <span class="kw">else</span>:
+            <span class="cm"># Fallback: thử lấy text content bất kỳ</span>
+            text = <span class="fn">getattr</span>(component, <span class="st">"content"</span>, <span class="st">""</span>) <span class="kw">or</span> <span class="fn">getattr</span>(component, <span class="st">"text"</span>, <span class="st">""</span>)
+            <span class="kw">if</span> text:
+                parts.<span class="fn">append</span>(str(text))
+
+    <span class="kw">return</span> <span class="st">"\n\n"</span>.<span class="fn">join</span>(parts) <span class="kw">if</span> parts <span class="kw">else</span> <span class="st">"Không có dữ liệu để hiển thị."</span>
+
+
+<span class="kw">def</span> <span class="fn">dataframe_to_markdown</span>(df) -> str:
+    <span class="st">"""Convert pandas DataFrame thành Markdown table."""</span>
+    <span class="kw">try</span>:
+        <span class="kw">import</span> pandas <span class="kw">as</span> pd
+        <span class="kw">if isinstance</span>(df, pd.DataFrame):
+            <span class="cm"># Giới hạn rows để tránh response quá dài</span>
+            max_rows = int(os.getenv(<span class="st">"MAX_RESULT_ROWS"</span>, <span class="nu">50</span>))
+            truncated = len(df) > max_rows
+            df_show = df.<span class="fn">head</span>(max_rows)
+
+            header = <span class="st">" | "</span>.<span class="fn">join</span>(str(c) <span class="kw">for</span> c <span class="kw">in</span> df_show.columns)
+            sep    = <span class="st">" | "</span>.<span class="fn">join</span>(<span class="st">"---"</span> <span class="kw">for</span> _ <span class="kw">in</span> df_show.columns)
+            rows   = [<span class="st">" | "</span>.<span class="fn">join</span>(str(v) <span class="kw">for</span> v <span class="kw">in</span> row) <span class="kw">for</span> _, row <span class="kw">in</span> df_show.iterrows()]
+
+            table = f<span class="st">"| {header} |\n| {sep} |\n"</span>
+            table += <span class="st">"\n"</span>.<span class="fn">join</span>(f<span class="st">"| {r} |"</span> <span class="kw">for</span> r <span class="kw">in</span> rows)
+            <span class="kw">if</span> truncated:
+                table += f<span class="st">"\n\n_Hiển thị {max_rows}/{len(df)} rows._"</span>
+            <span class="kw">return</span> table
+    <span class="kw">except</span> Exception:
+        <span class="kw">pass</span>
+    <span class="kw">return</span> str(df)</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECTION — SEED MEMORY
+    ═══════════════════════════════════════════════ -->
+    <div class="page-section" id="seed-memory">
+      <div class="section-header">
+        <span class="section-num">07</span>
+        <div>
+          <h2>Bước 3 — Seed Tool Memory</h2>
+          <p>Nạp kiến thức ban đầu về schema DB và quy tắc nghiệp vụ vào Tool Memory. Chạy script này một lần khi setup. Sau đó Vanna tự học thêm từ mỗi query thành công.</p>
+        </div>
+      </div>
+
+      <div class="callout callout-warn">
+        <span class="callout-icon">⚠️</span>
+        <div class="callout-body">
+          <strong>Không còn vn.train() nữa!</strong>
+          <p>Vanna 2.0 không có phương thức <code class="ic">vn.train(ddl=...)</code>. Thay vào đó dùng <code class="ic">SaveTextMemoryTool</code> và <code class="ic">SaveQuestionToolArgsTool</code> qua Agent chat interface, hoặc gọi trực tiếp vào <code class="ic">agent_memory</code> object.</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>seed/ddl/schema.sql — Schema DB</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">seed/ddl/schema.sql</span><span class="code-lang">sql</span></div>
+          <pre><span class="cm">-- Đặt toàn bộ DDL của database vào đây</span>
+<span class="cm">-- Agent sẽ dùng để hiểu cấu trúc và sinh SQL đúng</span>
+
+<span class="kw">CREATE TABLE</span> customers (
+    id          SERIAL PRIMARY KEY,
+    name        VARCHAR(<span class="nu">255</span>) NOT NULL,
+    email       VARCHAR(<span class="nu">255</span>) UNIQUE,
+    region      VARCHAR(<span class="nu">50</span>),
+    created_at  TIMESTAMP DEFAULT NOW()
+);
+
+<span class="kw">CREATE TABLE</span> orders (
+    id          SERIAL PRIMARY KEY,
+    customer_id INT REFERENCES customers(id),
+    amount      DECIMAL(<span class="nu">12</span>,<span class="nu">2</span>) NOT NULL,
+    status      VARCHAR(<span class="nu">20</span>),  <span class="cm">-- pending, completed, cancelled</span>
+    created_at  TIMESTAMP DEFAULT NOW()
+);
+
+<span class="kw">CREATE TABLE</span> products (
+    id          SERIAL PRIMARY KEY,
+    name        VARCHAR(<span class="nu">255</span>),
+    category    VARCHAR(<span class="nu">100</span>),
+    price       DECIMAL(<span class="nu">10</span>,<span class="nu">2</span>),
+    stock       INT DEFAULT <span class="nu">0</span>
+);</pre>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>seed/examples.json — Question-SQL Pairs</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">seed/examples.json</span><span class="code-lang">json</span></div>
+          <pre>[
+  {
+    "question": "Doanh thu tháng này là bao nhiêu?",
+    "sql": "SELECT SUM(amount) as revenue FROM orders WHERE DATE_TRUNC('month', created_at) = DATE_TRUNC('month', NOW()) AND status = 'completed'"
+  },
+  {
+    "question": "Top 5 khách hàng theo doanh thu",
+    "sql": "SELECT c.name, SUM(o.amount) as total FROM orders o JOIN customers c ON o.customer_id = c.id WHERE o.status = 'completed' GROUP BY c.id, c.name ORDER BY total DESC LIMIT 5"
+  },
+  {
+    "question": "Số đơn hàng theo trạng thái",
+    "sql": "SELECT status, COUNT(*) as count FROM orders GROUP BY status ORDER BY count DESC"
+  },
+  {
+    "question": "Sản phẩm nào sắp hết hàng?",
+    "sql": "SELECT name, category, stock FROM products WHERE stock < 10 ORDER BY stock ASC"
+  }
+]</pre>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>seed/seed_memory.py — Script Seed</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">seed/seed_memory.py</span><span class="code-lang">python</span></div>
+          <pre><span class="st">"""
+Script này chạy một lần để nạp kiến thức vào Tool Memory.
+Chạy: python seed/seed_memory.py
+
+Sau đó Vanna Agent sẽ tự học thêm từ mỗi query thành công.
+"""</span>
+<span class="kw">import</span> asyncio, json, os, sys
+sys.path.<span class="fn">insert</span>(<span class="nu">0</span>, os.path.<span class="fn">dirname</span>(os.path.<span class="fn">dirname</span>(__file__)))
+
+<span class="kw">from</span> dotenv <span class="kw">import</span> load_dotenv
+load_dotenv()
+
+<span class="kw">from</span> app.agent <span class="kw">import</span> <span class="fn">create_agent</span>, <span class="fn">build_agent_memory</span>
+<span class="kw">from</span> vanna.core.user <span class="kw">import</span> <span class="cl">User</span>
+
+ADMIN = <span class="cl">User</span>(
+    id=<span class="st">"seed-admin"</span>,
+    email=<span class="st">"admin@seed"</span>,
+    group_memberships=[<span class="st">"admin"</span>]
+)
+
+<span class="kw">async def</span> <span class="fn">seed_schema</span>(agent, schema_path: str):
+    <span class="st">"""Nạp DDL schema vào Tool Memory."""</span>
+    <span class="kw">if not</span> os.path.<span class="fn">exists</span>(schema_path):
+        print(f<span class="st">"⚠️  Bỏ qua DDL — không tìm thấy: {schema_path}"</span>)
+        <span class="kw">return</span>
+
+    ddl = <span class="fn">open</span>(schema_path, encoding=<span class="st">"utf-8"</span>).<span class="fn">read</span>()
+    <span class="kw">await</span> agent.<span class="fn">chat</span>(
+        message=f<span class="st">"Remember this database schema:\n\n{ddl}"</span>,
+        user=ADMIN
+    )
+    print(<span class="st">"✅ Schema DDL seeded"</span>)
+
+
+<span class="kw">async def</span> <span class="fn">seed_docs</span>(agent, docs_dir: str):
+    <span class="st">"""Nạp business documentation."""</span>
+    <span class="kw">if not</span> os.path.<span class="fn">exists</span>(docs_dir):
+        <span class="kw">return</span>
+    <span class="kw">for</span> fname <span class="kw">in</span> os.<span class="fn">listdir</span>(docs_dir):
+        <span class="kw">if</span> fname.endswith(<span class="st">".md"</span>):
+            content = <span class="fn">open</span>(os.path.<span class="fn">join</span>(docs_dir, fname), encoding=<span class="st">"utf-8"</span>).<span class="fn">read</span>()
+            <span class="kw">await</span> agent.<span class="fn">chat</span>(
+                message=f<span class="st">"Remember this business documentation:\n\n{content}"</span>,
+                user=ADMIN
+            )
+            print(f<span class="st">"✅ Doc seeded: {fname}"</span>)
+
+
+<span class="kw">async def</span> <span class="fn">seed_examples</span>(agent_memory, examples_path: str):
+    <span class="st">"""Nạp question-SQL examples trực tiếp vào memory."""</span>
+    <span class="kw">if not</span> os.path.<span class="fn">exists</span>(examples_path):
+        print(f<span class="st">"⚠️  Bỏ qua examples — không tìm thấy: {examples_path}"</span>)
+        <span class="kw">return</span>
+
+    examples = json.<span class="fn">load</span>(<span class="fn">open</span>(examples_path, encoding=<span class="st">"utf-8"</span>))
+    <span class="kw">for</span> ex <span class="kw">in</span> examples:
+        <span class="kw">await</span> agent_memory.<span class="fn">save_question_tool_args</span>(
+            question=ex[<span class="st">"question"</span>],
+            tool_name=<span class="st">"run_sql"</span>,
+            tool_args={<span class="st">"sql"</span>: ex[<span class="st">"sql"</span>]}
+        )
+    print(f<span class="st">"✅ {len(examples)} SQL examples seeded"</span>)
+
+
+<span class="kw">async def</span> <span class="fn">main</span>():
+    print(<span class="st">"🌱 Bắt đầu seed Tool Memory..."</span>)
+
+    agent        = <span class="fn">create_agent</span>()
+    agent_memory = <span class="fn">build_agent_memory</span>()
+
+    <span class="kw">await</span> <span class="fn">seed_schema</span>(agent,        <span class="st">"seed/ddl/schema.sql"</span>)
+    <span class="kw">await</span> <span class="fn">seed_docs</span>(agent,          <span class="st">"seed/docs/"</span>)
+    <span class="kw">await</span> <span class="fn">seed_examples</span>(agent_memory, <span class="st">"seed/examples.json"</span>)
+
+    print(<span class="st">"🎉 Seed hoàn tất! Tool Memory đã sẵn sàng."</span>)
+
+<span class="kw">if</span> __name__ == <span class="st">"__main__"</span>:
+    asyncio.<span class="fn">run</span>(<span class="fn">main</span>())</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECTION — OPEN WEBUI
+    ═══════════════════════════════════════════════ -->
+    <div class="page-section" id="open-webui">
+      <div class="section-header">
+        <span class="section-num">08</span>
+        <div>
+          <h2>Bước 4 — Cấu Hình Open WebUI</h2>
+          <p>Kết nối Open WebUI vào FastAPI Bridge. Open WebUI sẽ thấy Bridge như một "OpenAI endpoint" và hiển thị model trong danh sách.</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Cài đặt Open WebUI</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">terminal</span><span class="code-lang">bash</span></div>
+          <pre><span class="cm"># Option 1: Docker (khuyến nghị)</span>
+docker run -d \
+  --name open-webui \
+  -p 3000:8080 \
+  --add-host=host.docker.internal:host-gateway \
+  -v open-webui:/app/backend/data \
+  ghcr.io/open-webui/open-webui:main
+
+<span class="cm"># Option 2: pip</span>
+pip install open-webui
+open-webui serve --port 3000</pre>
+        </div>
+        <div class="callout callout-info">
+          <span class="callout-icon">ℹ️</span>
+          <div class="callout-body">
+            <p>Nếu chạy Open WebUI bằng Docker, FastAPI Bridge phải accessible qua <code class="ic">host.docker.internal:8000</code> thay vì <code class="ic">localhost:8000</code>. Flag <code class="ic">--add-host=host.docker.internal:host-gateway</code> cho phép điều này.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Kết nối vào FastAPI Bridge</h3>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num-circle">1</div>
+            <div class="step-body">
+              <h4>Đăng nhập Open WebUI</h4>
+              <p>Mở <code class="ic">http://localhost:3000</code>, tạo tài khoản admin lần đầu tiên.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num-circle">2</div>
+            <div class="step-body">
+              <h4>Admin Panel → Settings → Connections</h4>
+              <p>Vào biểu tượng người dùng góc trên phải → <strong>Admin Panel</strong> → tab <strong>Settings</strong> → <strong>Connections</strong>.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num-circle">3</div>
+            <div class="step-body">
+              <h4>Thêm OpenAI API Connection</h4>
+              <p>Trong phần <strong>OpenAI API</strong>, click dấu <strong>+</strong> hoặc chỉnh sửa entry mặc định:</p>
+              <p>• <strong>URL:</strong> <code class="ic">http://localhost:8000/v1</code> (hoặc <code class="ic">http://host.docker.internal:8000/v1</code> nếu dùng Docker)</p>
+              <p>• <strong>API Key:</strong> giá trị của <code class="ic">USER_API_KEY</code> trong <code class="ic">.env</code></p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num-circle">4</div>
+            <div class="step-body">
+              <h4>Verify — Nhấn nút Refresh/Check</h4>
+              <p>Open WebUI sẽ gọi <code class="ic">GET /v1/models</code>. Nếu kết nối thành công, model <code class="ic">text-to-data</code> sẽ xuất hiện trong danh sách.</p>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num-circle">5</div>
+            <div class="step-body">
+              <h4>Cấu hình System Prompt (tuỳ chọn)</h4>
+              <p>Vào <strong>Workspace → Models → text-to-data → Edit</strong>. Thêm system prompt:</p>
+              <p><em>"Bạn là trợ lý phân tích dữ liệu. Khi nhận câu hỏi, hãy phân tích dữ liệu từ database và trả lời rõ ràng với bảng kết quả và câu SQL đã dùng."</em></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECTION — RUNNING
+    ═══════════════════════════════════════════════ -->
+    <div class="page-section" id="running">
+      <div class="section-header">
+        <span class="section-num">09</span>
+        <div>
+          <h2>Khởi Chạy Toàn Hệ Thống</h2>
+          <p>Thứ tự khởi động đúng: Database → FastAPI Bridge → Seed Memory → Open WebUI.</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Thứ tự lần đầu setup</h3>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num-circle">1</div>
+            <div class="step-body">
+              <h4>Đảm bảo Database đang chạy</h4>
+              <div class="code-wrap">
+                <pre>docker run -d \
+  --name postgres \
+  -e POSTGRES_DB=mydb \
+  -e POSTGRES_USER=user \
+  -e POSTGRES_PASSWORD=pass \
+  -p 5432:5432 \
+  postgres:16</pre>
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num-circle">2</div>
+            <div class="step-body">
+              <h4>Khởi động FastAPI Bridge</h4>
+              <div class="code-wrap">
+                <pre><span class="cm"># Từ root project</span>
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+<span class="cm"># Nên thấy output:</span>
+<span class="cm"># 🚀 Khởi tạo Vanna 2.0 Agent...</span>
+<span class="cm"># ✅ Agent sẵn sàng</span>
+<span class="cm"># INFO:     Uvicorn running on http://0.0.0.0:8000</span></pre>
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num-circle">3</div>
+            <div class="step-body">
+              <h4>Seed Tool Memory (chỉ lần đầu)</h4>
+              <div class="code-wrap">
+                <pre>python seed/seed_memory.py
+
+<span class="cm"># Output mong đợi:</span>
+<span class="cm"># 🌱 Bắt đầu seed Tool Memory...</span>
+<span class="cm"># ✅ Schema DDL seeded</span>
+<span class="cm"># ✅ Doc seeded: business_rules.md</span>
+<span class="cm"># ✅ 4 SQL examples seeded</span>
+<span class="cm"># 🎉 Seed hoàn tất!</span></pre>
+              </div>
+            </div>
+          </div>
+          <div class="step">
+            <div class="step-num-circle">4</div>
+            <div class="step-body">
+              <h4>Khởi động Open WebUI</h4>
+              <div class="code-wrap">
+                <pre>docker start open-webui
+<span class="cm"># Hoặc nếu chưa tạo:</span>
+docker run -d -p 3000:8080 --add-host=host.docker.internal:host-gateway \
+  -v open-webui:/app/backend/data ghcr.io/open-webui/open-webui:main</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Các lần chạy tiếp theo</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">terminal</span><span class="code-lang">bash</span></div>
+          <pre><span class="cm"># Chỉ cần chạy Bridge (Agent load memory từ ChromaDB tự động)</span>
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+<span class="cm"># Open WebUI (nếu dùng Docker, nó tự start)</span>
+docker start open-webui</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECTION — TESTING
+    ═══════════════════════════════════════════════ -->
+    <div class="page-section" id="testing">
+      <div class="section-header">
+        <span class="section-num">10</span>
+        <div>
+          <h2>Kiểm Thử</h2>
+          <p>Test từng lớp để xác nhận toàn bộ hệ thống hoạt động đúng trước khi dùng qua Open WebUI.</p>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Test 1 — Health check</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">terminal</span><span class="code-lang">bash</span></div>
+          <pre>curl http://localhost:8000/health
+
+<span class="cm"># Kết quả mong đợi:</span>
+<span class="cm"># {"status": "ok", "agent_ready": true}</span></pre>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Test 2 — Model discovery</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">terminal</span><span class="code-lang">bash</span></div>
+          <pre>curl http://localhost:8000/v1/models \
+  -H "Authorization: Bearer your-user-key"
+
+<span class="cm"># Kết quả mong đợi:</span>
+<span class="cm"># {"object": "list", "data": [{"id": "text-to-data", ...}]}</span></pre>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Test 3 — Chat endpoint (không stream)</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">terminal</span><span class="code-lang">bash</span></div>
+          <pre>curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-user-key" \
+  -d '{
+    "model": "text-to-data",
+    "messages": [{"role": "user", "content": "Có bao nhiêu khách hàng?"}],
+    "stream": false
+  }'
+
+<span class="cm"># Kết quả mong đợi: JSON với choices[0].message.content chứa kết quả SQL</span></pre>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Test 4 — Stream response</h3>
+        <div class="code-wrap">
+          <div class="code-header"><span class="code-filename">terminal</span><span class="code-lang">bash</span></div>
+          <pre>curl -N http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-user-key" \
+  -d '{
+    "model": "text-to-data",
+    "messages": [{"role": "user", "content": "Doanh thu tháng này?"}],
+    "stream": true
+  }'
+
+<span class="cm"># Nên thấy các dòng:</span>
+<span class="cm"># data: {"id": "chatcmpl-xxx", "choices": [{"delta": {"content": "..."}}]}</span>
+<span class="cm"># data: [DONE]</span></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECTION — DOCKER COMPOSE
+    ═══════════════════════════════════════════════ -->
+    <div class="page-section" id="docker">
+      <div class="section-header">
+        <span class="section-num">11</span>
+        <div>
+          <h2>Docker Compose — Toàn Bộ Stack</h2>
+          <p>Chạy toàn bộ hệ thống (DB + Bridge + Open WebUI) bằng một lệnh duy nhất.</p>
+        </div>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header"><span class="code-filename">docker-compose.yml</span><span class="code-lang">yaml</span></div>
+        <pre>version: "3.9"
+
+services:
+
+  <span class="cm"># ── PostgreSQL ─────────────────────────────────────</span>
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  <span class="cm"># ── FastAPI Bridge ─────────────────────────────────</span>
+  bridge:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./chromadb_data:/app/chromadb_data
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+
+  <span class="cm"># ── Open WebUI ─────────────────────────────────────</span>
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    volumes:
+      - open_webui_data:/app/backend/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      OPENAI_API_BASE_URL: http://bridge:8000/v1
+      OPENAI_API_KEY: ${USER_API_KEY}
+    depends_on:
+      - bridge
+
+volumes:
+  postgres_data:
+  open_webui_data:</pre>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header"><span class="code-filename">Dockerfile</span><span class="code-lang">dockerfile</span></div>
+        <pre>FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 8000
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]</pre>
+      </div>
+
+      <div class="code-wrap">
+        <div class="code-header"><span class="code-filename">terminal</span><span class="code-lang">bash</span></div>
+        <pre><span class="cm"># Khởi động toàn bộ stack</span>
+docker compose up -d
+
+<span class="cm"># Seed memory (lần đầu)</span>
+docker compose exec bridge python seed/seed_memory.py
+
+<span class="cm"># Xem logs</span>
+docker compose logs -f bridge</pre>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECTION — TROUBLESHOOT
+    ═══════════════════════════════════════════════ -->
+    <div class="page-section" id="troubleshoot">
+      <div class="section-header">
+        <span class="section-num">12</span>
+        <div>
+          <h2>Xử Lý Lỗi Thường Gặp</h2>
+        </div>
+      </div>
+
+      <table class="doc-table">
+        <thead><tr><th>Triệu chứng</th><th>Nguyên nhân</th><th>Cách sửa</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="label">Open WebUI không thấy model "text-to-data"</td>
+            <td>Bridge chưa chạy, hoặc URL sai</td>
+            <td>Kiểm tra <code class="ic">GET /v1/models</code> trả về đúng format. Kiểm tra CORS. Nếu dùng Docker dùng <code class="ic">host.docker.internal:8000</code></td>
+          </tr>
+          <tr>
+            <td class="label">Agent khởi tạo xong nhưng chat trả về lỗi</td>
+            <td>DB connection fail hoặc API key LLM sai</td>
+            <td>Kiểm tra <code class="ic">/health</code> endpoint. Xem logs uvicorn. Test kết nối DB riêng</td>
+          </tr>
+          <tr>
+            <td class="label">SQL sinh ra sai hoặc không liên quan</td>
+            <td>Tool Memory chưa được seed, hoặc thiếu schema</td>
+            <td>Chạy lại <code class="ic">python seed/seed_memory.py</code>. Đảm bảo DDL đầy đủ và chính xác</td>
+          </tr>
+          <tr>
+            <td class="label">Tool Memory mất sau khi restart</td>
+            <td>Dùng <code class="ic">DemoAgentMemory</code> (in-memory) thay vì ChromaDB</td>
+            <td>Dùng <code class="ic">ChromaDBAgentMemory(path="./chromadb_data")</code> với path tuyệt đối hoặc mount volume</td>
+          </tr>
+          <tr>
+            <td class="label">ImportError khi import Vanna 2.0</td>
+            <td>Cài nhầm Vanna 0.x hoặc thiếu extra dependencies</td>
+            <td>Chạy <code class="ic">pip install 'vanna[gemini,fastapi,postgres,chromadb]'</code> đúng version 2.0</td>
+          </tr>
+          <tr>
+            <td class="label">Response rỗng hoặc hiển thị lỗi trong Open WebUI</td>
+            <td>SSE format không đúng, thiếu <code class="ic">data: [DONE]</code></td>
+            <td>Kiểm tra <code class="ic">stream_response</code> generator — phải có chunk cuối với <code class="ic">finish_reason: "stop"</code> và <code class="ic">data: [DONE]</code></td>
+          </tr>
+          <tr>
+            <td class="label">ChromaDB lỗi khi chạy đồng thời nhiều request</td>
+            <td>ChromaDB không thread-safe với nhiều connection</td>
+            <td>Đảm bảo Agent là singleton (tạo 1 lần trong lifespan). Không tạo ChromaDBAgentMemory mới mỗi request</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECTION — PHASES
+    ═══════════════════════════════════════════════ -->
+    <div class="page-section" id="phases">
+      <div class="section-header">
+        <span class="section-num">13</span>
+        <div>
+          <h2>Lộ Trình Phát Triển</h2>
+          <p>Phân chia theo mức độ ưu tiên để có hệ thống hoạt động nhanh nhất, rồi mới cải thiện dần.</p>
+        </div>
+      </div>
+
+      <div class="phases">
+        <div class="phase">
+          <span class="phase-tag pt-1">PHASE 1 — Core (1-2 ngày)</span>
+          <h3>Hệ thống hoạt động end-to-end</h3>
+          <ul>
+            <li>Khởi tạo Vanna 2.0 Agent với Gemini + PostgreSQL</li>
+            <li>Xây FastAPI Bridge với <code class="ic">/v1/models</code> + <code class="ic">/v1/chat/completions</code></li>
+            <li>Streaming SSE đúng format OpenAI</li>
+            <li>Kết nối Open WebUI → Bridge thành công</li>
+            <li>Seed Tool Memory với schema và examples cơ bản</li>
+            <li><strong>Milestone:</strong> Hỏi được câu đơn giản qua Open WebUI và nhận kết quả</li>
+          </ul>
+        </div>
+        <div class="phase">
+          <span class="phase-tag pt-2">PHASE 2 — Quality (3-5 ngày)</span>
+          <h3>Nâng chất lượng SQL và UX</h3>
+          <ul>
+            <li>Bổ sung business docs và SQL examples phong phú hơn</li>
+            <li>Response formatter hoàn chỉnh (table, SQL, error)</li>
+            <li>Error handling thân thiện với người dùng</li>
+            <li>Health check endpoint chi tiết (DB ping, memory status)</li>
+            <li>Logging structured (JSON) để dễ debug</li>
+            <li><strong>Milestone:</strong> SQL chính xác với domain-specific queries</li>
+          </ul>
+        </div>
+        <div class="phase">
+          <span class="phase-tag pt-3">PHASE 3 — Production (1 tuần)</span>
+          <h3>Sẵn sàng production</h3>
+          <ul>
+            <li>RBAC đầy đủ (admin có thể xem/xoá Tool Memory)</li>
+            <li>Rate limiting per user/group</li>
+            <li>Docker Compose với healthcheck đầy đủ</li>
+            <li>Giới hạn SQL (chỉ SELECT, MAX rows inject)</li>
+            <li>Monitoring cơ bản (response time, error rate)</li>
+            <li><strong>Milestone:</strong> Deploy được lên server thật</li>
+          </ul>
+        </div>
+        <div class="phase">
+          <span class="phase-tag pt-4">PHASE 4 — Advanced</span>
+          <h3>Tính năng nâng cao</h3>
+          <ul>
+            <li>Multi-database support (query nhiều DB cùng lúc)</li>
+            <li>Chart/visualization export (PNG, CSV)</li>
+            <li>Audit log — lưu lại mọi query người dùng thực hiện</li>
+            <li>Admin UI để quản lý Tool Memory (view, edit, delete)</li>
+            <li>Scheduled re-training khi schema thay đổi</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-footer">
+      <span>Text-to-Data App · Vanna 2.0 Agent API · FastAPI Bridge · Open WebUI</span>
+      <span>Full Documentation v3.0</span>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+// Active nav highlight on scroll
+const sections = document.querySelectorAll('.page-section[id]');
+const navItems = document.querySelectorAll('.nav-item');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      navItems.forEach(item => {
+        item.classList.toggle('active', item.getAttribute('href') === `#${id}`);
+      });
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+sections.forEach(s => observer.observe(s));
+
+navItems.forEach(item => {
+  item.addEventListener('click', e => {
+    navItems.forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+  });
+});
+</script>
+</body>
+</html>

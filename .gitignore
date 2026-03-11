@@ -29,12 +29,7 @@ poetry.lock
 .vscode/
 .idea/
 
-# Vanna local vector stores
-vanna/
-.vanna/
-*.faiss
-*.index
-*.db
+
  
 
 # Dagster instance
