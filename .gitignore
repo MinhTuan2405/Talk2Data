@@ -83,7 +83,6 @@ data/
 datasets/
 artifacts/
 outputs/
-models/
 cache/
 
 # ML / Embeddings
