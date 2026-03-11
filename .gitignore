@@ -36,11 +36,6 @@ vanna/
 *.index
 *.db
  
-# Dagster
-dagster_storage/
-dagster_home/
-.dagster/
-.history/
 
 # Dagster instance
 *.db-shm
